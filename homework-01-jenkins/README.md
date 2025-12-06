@@ -201,9 +201,19 @@ pipeline {
 
 ![Build History](screenshots/build-history.png)
 
-- **Simple Freestyle Job #1** — ❌ Failed. Причина: гілка була вказана як `*/master`, а в репозиторії вона називається `*/main`
-- **Simple Freestyle Job #2** — ✅ Success. Виправлено назву гілки
-- **Pipeline Job #1** — ✅ Success
+**Simple Freestyle Job:**
+
+- **#1** — ❌ Failed. Причина: гілка була вказана як `*/master`, а в репозиторії — `*/main`
+- **#2** — ✅ Success. Виправлено назву гілки
+
+**Pipeline Job:**
+
+- **#1** — ✅ Success. Перший запуск з Jenkinsfile
+- **#2** — ✅ Success. Додано telegramSend (плагін не працював)
+- **#3** — ❌ Failed. Спроба виправити chatId в лапках — помилка типу
+- **#4** — ✅ Success. Повернуто chatId без лапок
+- **#5** — ❌ Failed. Credentials не знайдено (неправильні ID)
+- **#6** — ✅ Success. Виправлено ID credentials, Telegram нотифікації працюють
 
 ### Telegram нотифікації
 
@@ -219,6 +229,7 @@ pipeline {
 ---
 
 ## Корисні команди
+
 ```bash
 # Запуск
 docker compose up -d
