@@ -127,6 +127,18 @@ pipeline {
     post {
         success {
             archiveArtifacts artifacts: 'complete/target/*.jar'
+            sh '''
+                curl -s -X POST https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
+                -d chat_id=${TELEGRAM_CHAT_ID} \
+                -d text="✅ Build #${BUILD_NUMBER} SUCCESS - ${JOB_NAME}"
+            '''
+        }
+        failure {
+            sh '''
+                curl -s -X POST https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
+                -d chat_id=${TELEGRAM_CHAT_ID} \
+                -d text="❌ Build #${BUILD_NUMBER} FAILED - ${JOB_NAME}"
+            '''
         }
     }
 }
@@ -140,6 +152,39 @@ pipeline {
 4. Branch: `*/main`
 5. Save → Build Now
 
+### 7. Telegram нотифікації
+
+#### Створення бота
+
+1. Відкрити Telegram → знайти @BotFather
+2. Написати `/newbot`
+3. Ввести ім'я та username бота
+4. Зберегти токен
+
+#### Отримання Chat ID
+
+1. Написати боту будь-яке повідомлення
+2. Відкрити `https://api.telegram.org/bot<TOKEN>/getUpdates`
+3. Знайти `chat.id` в JSON
+
+#### Налаштування Jenkins Credentials
+
+1. Manage Jenkins → Credentials → System → Global credentials
+2. Add Credentials:
+   - Kind: Secret text
+   - Secret: `<bot token>`
+   - ID: `telegram-token`
+3. Add Credentials:
+   - Kind: Secret text
+   - Secret: `<chat id>`
+   - ID: `telegram-chat-id`
+
+#### Примітка про Telegram Bot Plugin
+
+Плагін `Telegram Bot Plugin` було встановлено, але він має баг — не відправляє повідомлення реально, хоча виводить їх в консоль. Плагін не оновлювався 5+ років.
+
+Альтернативне рішення — використання `curl` напряму в Jenkinsfile, що є більш надійним підходом.
+
 ---
 
 ## Результати
@@ -152,8 +197,6 @@ pipeline {
 
 ![Pipeline Job Success](screenshots/pipeline-success.png)
 
----
-
 ### Build History
 
 ![Build History](screenshots/build-history.png)
@@ -161,6 +204,10 @@ pipeline {
 - **Simple Freestyle Job #1** — ❌ Failed. Причина: гілка була вказана як `*/master`, а в репозиторії вона називається `*/main`
 - **Simple Freestyle Job #2** — ✅ Success. Виправлено назву гілки
 - **Pipeline Job #1** — ✅ Success
+
+### Telegram нотифікації
+
+![Telegram Notification](screenshots/telegram-notification.png)
 
 ---
 
@@ -172,7 +219,6 @@ pipeline {
 ---
 
 ## Корисні команди
-
 ```bash
 # Запуск
 docker compose up -d
@@ -188,4 +234,7 @@ docker logs jenkins-docker
 
 # Initial password
 docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+# Тест Telegram API
+docker exec jenkins curl -s "https://api.telegram.org/bot/getMe"
 ```
