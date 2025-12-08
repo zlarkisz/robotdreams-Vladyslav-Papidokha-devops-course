@@ -1,0 +1,93 @@
+# ============================================================================
+# VAGRANTFILE ДЛЯ QEMU PROVIDER (Apple Silicon M1/M2/M3)
+# ============================================================================
+#
+# Чому QEMU, а не VirtualBox?
+# ---------------------------
+# Apple Silicon (M1/M2/M3) використовує ARM архітектуру, а не x86.
+# VirtualBox на Apple Silicon:
+#   - Встановлюється ✅
+#   - Запускає ARM VM вручну ✅ (як ми робили з TestVM)
+#   - Але Vagrant boxes для VirtualBox майже всі x86 ❌
+#
+# QEMU — це емулятор/віртуалізатор, який:
+#   - Нативно підтримує ARM на Apple Silicon
+#   - Має Vagrant плагін (vagrant-qemu)
+#   - Має ARM64 boxes в Vagrant Cloud
+#
+# Встановлення:
+#   brew install qemu
+#   vagrant plugin install vagrant-qemu
+#
+# ============================================================================
+
+Vagrant.configure("2") do |config|
+
+  # =========================================================================
+  # VM1 — ПУБЛІЧНИЙ ВЕБСЕРВЕР
+  # =========================================================================
+
+  config.vm.define "web" do |web|
+
+    # Box — Ubuntu 22.04 для ARM процесорів
+    web.vm.box = "perk/ubuntu-2204-arm64"
+    web.vm.hostname = "web-server"
+
+    # Port Forwarding: localhost:8080 → nginx у VM
+    web.vm.network "forwarded_port", guest: 80, host: 8080
+
+    web.vm.provider "qemu" do |qe|
+      qe.memory = "1024"
+      qe.smp = "1"
+      qe.ssh_port = 50122
+    end
+
+    # Встановлення nginx
+    web.vm.provision "shell", inline: <<-SHELL
+      apt-get update
+      apt-get install -y nginx
+    SHELL
+  end
+
+  # =========================================================================
+  # VM2 — ПРИВАТНИЙ СЕРВЕР
+  # =========================================================================
+
+  config.vm.define "private" do |priv|
+    priv.vm.box = "perk/ubuntu-2204-arm64"
+    priv.vm.hostname = "private-server"
+
+    priv.vm.provider "qemu" do |qe|
+      qe.memory = "1024"
+      qe.smp = "1"
+      qe.ssh_port = 50222
+    end
+
+    # Провізіонінг через зовнішній скрипт
+    priv.vm.provision "shell", path: "provision.sh"
+  end
+
+  # =========================================================================
+  # VM3 — СТАТИЧНИЙ СЕРВЕР
+  # =========================================================================
+
+  config.vm.define "static" do |stat|
+    stat.vm.box = "perk/ubuntu-2204-arm64"
+    stat.vm.hostname = "static-server"
+
+    stat.vm.provider "qemu" do |qe|
+      qe.memory = "1024"
+      qe.smp = "1"
+      qe.ssh_port = 50322
+    end
+  end
+
+end
+
+# ============================================================================
+# КОМАНДИ:
+#   vagrant up --provider=qemu   — запустити всі VM
+#   vagrant ssh web              — підключитись до web
+#   vagrant halt                 — вимкнути
+#   vagrant destroy -f           — видалити
+# ============================================================================
