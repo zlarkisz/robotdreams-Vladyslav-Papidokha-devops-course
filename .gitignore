@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Docker
+.env
+
+# Jenkins
+jenkins_home/
+
+# Temporary
+*.tmp
+*.bak
