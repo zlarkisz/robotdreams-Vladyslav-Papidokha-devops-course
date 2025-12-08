@@ -20,3 +20,6 @@ jenkins_home/
 # Temporary
 *.tmp
 *.bak
+
+# Vagrant
+.vagrant/
