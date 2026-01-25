@@ -1,0 +1,32 @@
+# Headless Service для Redis StatefulSet
+# clusterIP: None робить його "headless" — без балансувальника
+# Це дає кожному поду власний DNS-запис
+
+# Версія Kubernetes API для Service ресурсів
+apiVersion: v1
+
+# Тип ресурсу — Service (мережевий абстракція над подами)
+kind: Service
+
+# Метадані — ідентифікація ресурсу
+metadata:
+  # Унікальне ім'я Service (стане частиною DNS)
+  name: redis-headless
+  # Labels для групування та пошуку
+  labels:
+    app: redis
+
+# Специфікація — бажаний стан Service
+spec:
+  # None = Headless Service (без балансувальника, прямий доступ до подів)
+  clusterIP: None
+
+  # Selector — знаходить поди з відповідними labels
+  selector:
+    app: redis
+
+  # Порти для прокидання трафіку
+  ports:
+    - port: 6379 # Порт Service
+      targetPort: 6379 # Порт контейнера
+      name: redis # Ім'я порту
