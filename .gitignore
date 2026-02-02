@@ -23,3 +23,16 @@ jenkins_home/
 
 # Vagrant
 .vagrant/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfstate.*
+.terraform.lock.hcl
+
+# Credentials
+*.pem
+*.key
+terraform.tfvars
+terraform-user_accessKeys.csv
