@@ -1,0 +1,16 @@
+# Pod, який використовує PVC для збереження даних
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pvc-test-pod              # Назва Pod'а
+spec:
+  containers:
+  - name: app
+    image: nginx:latest
+    volumeMounts:
+    - name: ebs-storage           # Назва volume (з'єднує з volumes нижче)
+      mountPath: /data             # Куди монтувати диск в контейнері
+  volumes:
+  - name: ebs-storage             # Назва volume
+    persistentVolumeClaim:
+      claimName: ebs-claim        # Посилаємось на наш PVC

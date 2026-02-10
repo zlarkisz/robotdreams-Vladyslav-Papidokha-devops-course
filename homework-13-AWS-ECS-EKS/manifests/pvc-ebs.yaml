@@ -1,0 +1,13 @@
+# PersistentVolumeClaim — запит на створення диска
+# Kubernetes через StorageClass автоматично створить EBS volume в AWS
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ebs-claim                 # Назва PVC
+spec:
+  accessModes:
+    - ReadWriteOnce               # Диск може бути підключений до одного Pod'а
+  storageClassName: gp2           # Тип диска AWS (gp2 = General Purpose SSD)
+  resources:
+    requests:
+      storage: 1Gi                # Розмір диска — 1 гігабайт

@@ -1,0 +1,12 @@
+# Service ClusterIP — доступний тільки всередині кластера
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpd-service
+spec:
+  type: ClusterIP                 # Тільки внутрішній доступ (без публічного IP)
+  selector:
+    app: httpd-app
+  ports:
+  - port: 80
+    targetPort: 80

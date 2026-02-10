@@ -1,0 +1,20 @@
+# Deployment busybox в namespace dev — 5 реплік
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox-app
+  namespace: dev                  # Розгортаємо в namespace dev, не в default
+spec:
+  replicas: 5                     # 5 копій Pod'а
+  selector:
+    matchLabels:
+      app: busybox-app
+  template:
+    metadata:
+      labels:
+        app: busybox-app
+    spec:
+      containers:
+      - name: busybox
+        image: busybox            # Легкий образ з базовими утилітами
+        command: ["sleep", "3600"] # Просто "спить" 1 годину

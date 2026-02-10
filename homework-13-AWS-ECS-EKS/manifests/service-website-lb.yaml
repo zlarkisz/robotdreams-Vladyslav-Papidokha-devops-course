@@ -1,0 +1,13 @@
+# Service — відкриває доступ до Pod'ів
+# LoadBalancer — створює AWS ELB (Elastic Load Balancer) з публічним IP
+apiVersion: v1
+kind: Service
+metadata:
+  name: website-lb                # Назва Service
+spec:
+  type: LoadBalancer              # Тип: створить AWS Load Balancer
+  selector:
+    app: website                  # Направляє трафік на Pod'и з цим лейблом
+  ports:
+  - port: 80                      # Порт Load Balancer (зовнішній)
+    targetPort: 80                # Порт контейнера (внутрішній)

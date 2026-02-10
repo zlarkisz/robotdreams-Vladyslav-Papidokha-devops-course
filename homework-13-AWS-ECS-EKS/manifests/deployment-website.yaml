@@ -1,0 +1,28 @@
+# Deployment — контролер, який керує Pod'ами
+# Гарантує що потрібна кількість Pod'ів завжди працює
+apiVersion: apps/v1               # Версія API для Deployment
+kind: Deployment
+metadata:
+  name: website                   # Назва Deployment
+spec:
+  replicas: 1                     # Кількість Pod'ів (копій)
+  selector:
+    matchLabels:
+      app: website                # За цим лейблом Deployment знаходить свої Pod'и
+  template:                       # Шаблон для створення Pod'ів
+    metadata:
+      labels:
+        app: website              # Лейбл Pod'а (має збігатись з selector)
+    spec:
+      containers:
+      - name: nginx               # Назва контейнера
+        image: nginx:latest       # Docker образ
+        ports:
+        - containerPort: 80       # Порт всередині контейнера
+        volumeMounts:
+        - name: html              # Назва volume (з'єднує з volumes нижче)
+          mountPath: /usr/share/nginx/html  # Куди монтувати в контейнері
+      volumes:
+      - name: html                # Назва volume
+        configMap:
+          name: website-content   # Беремо дані з нашого ConfigMap

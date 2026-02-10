@@ -1,0 +1,20 @@
+# Deployment з Apache HTTP Server — 2 репліки
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-app
+spec:
+  replicas: 2                     # Дві копії Pod'а — для відмовостійкості
+  selector:
+    matchLabels:
+      app: httpd-app
+  template:
+    metadata:
+      labels:
+        app: httpd-app
+    spec:
+      containers:
+      - name: httpd
+        image: httpd:latest       # Apache HTTP Server
+        ports:
+        - containerPort: 80
