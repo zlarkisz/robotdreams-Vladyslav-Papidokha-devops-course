@@ -1,0 +1,15 @@
+# Job — одноразове завдання
+# Запускає Pod, виконує команду, і завершується
+apiVersion: batch/v1              # API для Job
+kind: Job
+metadata:
+  name: hello-eks-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: hello
+        image: busybox            # Легкий образ (~1MB) з базовими Linux утилітами
+        command: ["echo", "Hello from EKS!"]  # Команда для виконання
+      restartPolicy: Never        # Не перезапускати після завершення
+  backoffLimit: 3                 # Максимум 3 спроби при помилці
