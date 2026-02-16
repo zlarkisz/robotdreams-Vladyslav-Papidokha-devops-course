@@ -1,0 +1,156 @@
+# Версія формату CloudFormation (завжди 2010-09-09, єдина існуюча)
+AWSTemplateFormatVersion: "2010-09-09"
+# Опис шаблону — видно в AWS Console при перегляді стеку
+Description: "My first CloudFormation stack - VPC with EC2 and S3"
+
+# Секція ресурсів — єдина обов'язкова секція, тут описуємо всю інфраструктуру
+Resources:
+  # ==================== МЕРЕЖА ====================
+
+  # VPC — ізольована приватна мережа (наш "район")
+  MyVPC:
+    Type: AWS::EC2::VPC # Тип ресурсу AWS
+    Properties:
+      CidrBlock: 10.0.0.0/16 # Діапазон IP-адрес (65 536 адрес)
+      EnableDnsSupport: true # Вмикає DNS-сервер у VPC (резолвінг імен)
+      EnableDnsHostnames: true # Дає ресурсам DNS-імена (ec2-x-x-x-x.amazonaws.com)
+      Tags:
+        - Key: Name
+          Value: cloudformation-vpc # Ім'я в AWS Console
+
+  # Subnet — підмережа всередині VPC ("кімната в будинку")
+  Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC # Посилання на VPC — в якому "районі" ця підмережа
+      CidrBlock: 10.0.1.0/24 # Діапазон IP (256 адрес із загального пулу VPC)
+      AvailabilityZone: us-east-1a # Фізична зона розміщення в регіоні
+      MapPublicIpOnLaunch: true # Автоматично давати публічний IP кожному ресурсу
+      Tags:
+        - Key: Name
+          Value: cloudformation-subnet
+
+  # Internet Gateway — "ворота" для виходу в інтернет
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: cloudformation-igw
+
+  # Attachment — прикріплює Internet Gateway до VPC ("встановлює ворота в паркан")
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC # До якого VPC прикріпити
+      InternetGatewayId: !Ref InternetGateway # Які ворота прикріпити
+
+  # Route Table — таблиця маршрутів ("дорожні знаки" для трафіку)
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref MyVPC # Route Table належить цьому VPC
+      Tags:
+        - Key: Name
+          Value: cloudformation-rt
+
+  # Route — конкретний маршрут: "весь зовнішній трафік → через Internet Gateway"
+  Route:
+    Type: AWS::EC2::Route
+    DependsOn: VPCGatewayAttachment # Чекаємо поки IGW прикріпиться до VPC
+    Properties:
+      RouteTableId: !Ref RouteTable # В яку таблицю додаємо маршрут
+      DestinationCidrBlock: 0.0.0.0/0 # Куди: будь-яка адреса в інтернеті
+      GatewayId: !Ref InternetGateway # Через що: через Internet Gateway
+
+  # Association — прив'язує Route Table до Subnet (без цього Subnet не знає про маршрути)
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet # Який Subnet
+      RouteTableId: !Ref RouteTable # Яку таблицю маршрутів прив'язати
+
+  # ==================== ПРАВА ДОСТУПУ ====================
+
+  # IAM Role — "перепустка" з дозволами (дає EC2 право читати S3)
+  MyIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      # Хто може використовувати цю роль (тільки сервіс EC2)
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17" # Версія мови політик AWS (завжди така)
+        Statement:
+          - Effect: Allow # Дозволити
+            Principal:
+              Service: ec2.amazonaws.com # Кому: сервісу EC2
+            Action: sts:AssumeRole # Що: взяти на себе цю роль
+      # Готові набори дозволів від AWS
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess # Читання з будь-якого S3
+      Tags:
+        - Key: Name
+          Value: cloudformation-role
+
+  # Instance Profile — обгортка для ролі (AWS вимагає її для прикріплення ролі до EC2)
+  MyInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref MyIAMRole # Яку роль загорнути
+
+  # ==================== ЗБЕРІГАННЯ ====================
+
+  # S3 Bucket — хмарне сховище файлів ("Google Drive папка")
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: cloudformation-bucket-robotdreams-devops-course # Глобально унікальне ім'я
+      VersioningConfiguration:
+        Status: Enabled # Зберігає всі версії файлів (як git-історія)
+      Tags:
+        - Key: Name
+          Value: cloudformation-bucket
+
+  # Bucket Policy — правила доступу до S3 bucket
+  MyBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MyS3Bucket # До якого bucket застосувати правила
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow # Дозволити
+            Principal:
+              AWS: !GetAtt MyIAMRole.Arn # Кому: нашій IAM ролі (ARN = унікальний ID)
+            Action: # Що дозволити:
+              - s3:GetObject #   — читати файли
+              - s3:ListBucket #   — бачити список файлів
+            Resource: # В якому ресурсі:
+              - !GetAtt MyS3Bucket.Arn #   — сам bucket (для ListBucket)
+              - !Sub "${MyS3Bucket.Arn}/*" #   — файли всередині (для GetObject)
+
+  # ==================== СЕРВЕР ====================
+
+  # EC2 Instance — віртуальний сервер ("мешканець будинку")
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro # Розмір: 1 CPU, 1 GB RAM (Free Tier)
+      ImageId: ami-0c02fb55956c7d316 # AMI — образ ОС (Amazon Linux 2 для us-east-1)
+      SubnetId: !Ref Subnet # В якому Subnet розмістити (отримає публічний IP)
+      IamInstanceProfile: !Ref MyInstanceProfile # Прикріплює "перепустку" з правами
+      Tags:
+        - Key: Name
+          Value: cloudformation-ec2
+
+# ==================== ВИХОДИ ====================
+
+# Outputs — що показати після створення стеку (видно в AWS Console)
+Outputs:
+  EC2PublicIP:
+    Description: "Public IP of the EC2 instance"
+    Value: !GetAtt MyEC2Instance.PublicIp # Отримати публічний IP інстансу
+
+  S3BucketName:
+    Description: "Name of S3 bucket"
+    Value: !Ref MyS3Bucket # Отримати ім'я bucket
