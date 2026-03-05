@@ -1,0 +1,5 @@
+---
+# Змінні для nginx ролі
+nginx_port: 80
+nginx_server_name: "{{ ansible_hostname }}" # автоматично береться з сервера
+site_title: "Ansible Homework"

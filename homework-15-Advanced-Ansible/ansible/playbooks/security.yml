@@ -1,0 +1,11 @@
+---
+# Playbook для налаштування безпеки
+# Запуск: ansible-playbook ansible/playbooks/security.yml
+
+- name: Configure security
+  hosts: aws_ec2
+  become: yes
+
+  roles:
+    - baseline
+    - firewall

@@ -1,0 +1,38 @@
+---
+# ================================================
+# Роль firewall — налаштування UFW
+# ================================================
+
+- name: Set default policy - deny incoming
+  ufw:
+    default: deny
+    direction: incoming
+
+- name: Set default policy - allow outgoing
+  ufw:
+    default: allow
+    direction: outgoing
+
+- name: Allow SSH (port 22)
+  ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+
+- name: Allow HTTP (port 80)
+  ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+
+- name: Allow HTTPS (port 443)
+  ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+
+# force прибрали — в новій версії модуля не підтримується
+# state: enabled сам по собі вмикає UFW без інтерактивних запитань
+- name: Enable UFW
+  ufw:
+    state: enabled

@@ -1,0 +1,9 @@
+---
+- name: Configure all servers
+  hosts: webservers
+  become: yes
+
+  roles:
+    - baseline
+    - firewall
+    - nginx

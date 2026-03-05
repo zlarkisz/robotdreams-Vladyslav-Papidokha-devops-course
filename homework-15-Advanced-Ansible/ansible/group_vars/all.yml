@@ -1,0 +1,7 @@
+---
+# Змінні для ВСІХ хостів в inventory
+# Це як .env файл у frontend проєкті
+
+# Публічний SSH ключ для деплою
+# Вставляємо сюди вміст ~/.ssh/ansible_lab_key.pub
+deploy_ssh_public_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMTOVN3S+MvrbcGm+wySyQPOxl2Ax/UywUO1JkrF7KnR ansible-lab"

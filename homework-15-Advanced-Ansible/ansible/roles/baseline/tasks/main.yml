@@ -1,0 +1,40 @@
+---
+# ================================================
+# Роль baseline — базові налаштування сервера
+# Виконується першою на КОЖНОМУ сервері
+# ================================================
+
+# Оновлюємо список пакетів (як npm install перед роботою)
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600  # не оновлювати якщо оновлено менш ніж годину тому
+
+# Встановлюємо базові пакети які потрібні на кожному сервері
+- name: Install base packages
+  apt:
+    name:
+      - vim      # текстовий редактор
+      - git      # система контролю версій
+      - mc       # файловий менеджер (Midnight Commander)
+      - ufw      # firewall (Uncomplicated Firewall)
+      - curl     # HTTP запити з командного рядка
+      - htop     # моніторинг процесів
+    state: present  # "переконайся що встановлено"
+
+# Налаштовуємо SSH — забороняємо вхід під root
+# Це важлива практика безпеки!
+- name: Disable root SSH login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin no'
+    state: present
+  notify: Restart SSH  # після зміни — перезапустити SSH (handler)
+
+# Додаємо публічний SSH ключ для деплою
+- name: Add deploy SSH key
+  authorized_key:
+    user: ubuntu
+    state: present
+    key: "{{ deploy_ssh_public_key }}"  # змінна з group_vars

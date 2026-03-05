@@ -1,0 +1,19 @@
+---
+plugin: amazon.aws.aws_ec2
+
+regions:
+  - eu-central-1
+
+filters:
+  tag:Ansible: "true"
+  instance-state-name: running
+
+keyed_groups:
+  - key: tags.Role
+    prefix: role
+    separator: "_"
+
+# Перейменовуємо 'tags' на 'ec2_tags' щоб уникнути конфлікту
+compose:
+  ansible_host: public_ip_address
+  ec2_tags: tags  # уникаємо зарезервованого імені 'tags'

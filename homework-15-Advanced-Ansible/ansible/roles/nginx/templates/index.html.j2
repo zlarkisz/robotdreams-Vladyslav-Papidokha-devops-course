@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            background: #1a1a2e;
+            color: #eee;
+            text-align: center;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        h1 { color: #e94560; }
+        .info { color: #a8b2d8; margin: 10px 0; }
+        .badge {
+            display: inline-block;
+            background: #e94560;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🚀 {{ site_title }}</h1>
+        <p class="info">Deployed by Ansible</p>
+
+        {# Jinja2 коментар — не потрапляє в HTML #}
+        {# ansible_hostname — факт який Ansible збирає автоматично з сервера #}
+        <p class="info">🖥️ Server: <strong>{{ ansible_hostname }}</strong></p>
+        <p class="info">🌍 IP: <strong>{{ ansible_default_ipv4.address }}</strong></p>
+        <p class="info">🐧 OS: <strong>{{ ansible_distribution }} {{ ansible_distribution_version }}</strong></p>
+
+        <br>
+        <span class="badge">Nginx {{ nginx_port }}</span>
+        <span class="badge">Ansible</span>
+        <span class="badge">AWS EC2</span>
+    </div>
+</body>
+</html>
