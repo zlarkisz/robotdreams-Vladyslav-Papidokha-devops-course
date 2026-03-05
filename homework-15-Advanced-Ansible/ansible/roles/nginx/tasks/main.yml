@@ -1,0 +1,38 @@
+---
+# ================================================
+# Роль nginx — встановлення та налаштування Nginx
+# ================================================
+
+# Встановлюємо Nginx
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+# Деплоємо конфіг файл через шаблон Jinja2
+# template модуль — бере файл з templates/, підставляє змінні і копіює на сервер
+- name: Deploy Nginx config
+  template:
+    src: nginx.conf.j2       # файл в roles/nginx/templates/
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Nginx      # якщо конфіг змінився — перезапустити
+
+# Деплоємо index.html через шаблон (з іменем сервера!)
+- name: Deploy index.html
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+# Переконуємось що Nginx запущений і стартує при перезавантаженні
+- name: Ensure Nginx is started and enabled
+  service:
+    name: nginx
+    state: started
+    enabled: yes

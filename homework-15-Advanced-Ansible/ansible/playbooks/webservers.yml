@@ -1,0 +1,10 @@
+---
+# Playbook для налаштування веб серверів
+# Запуск: ansible-playbook ansible/playbooks/webservers.yml
+
+- name: Configure web servers
+  hosts: role_webserver
+  become: yes
+
+  roles:
+    - nginx

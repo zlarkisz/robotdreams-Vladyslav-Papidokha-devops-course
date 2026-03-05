@@ -1,0 +1,8 @@
+---
+# Handlers виконуються ТІЛЬКИ якщо відповідний task зробив зміну
+# І виконуються ОДИН РАЗ в кінці playbook, навіть якщо викликались багато разів
+
+- name: Restart SSH
+  service:
+    name: ssh
+    state: restarted
