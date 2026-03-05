@@ -1,6 +1,6 @@
 ---
 - name: Configure all servers
-  hosts: webservers
+  hosts: role_webserver
   become: yes
 
   roles:
