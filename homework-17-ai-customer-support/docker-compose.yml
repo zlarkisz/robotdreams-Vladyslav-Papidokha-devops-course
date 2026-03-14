@@ -1,0 +1,12 @@
+services:
+  ai-support:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      - LLM_PROVIDER=${LLM_PROVIDER}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OLLAMA_MODEL=${OLLAMA_MODEL}
+      - PORT=3000
+    restart: unless-stopped
